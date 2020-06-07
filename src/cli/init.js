@@ -3,11 +3,20 @@
  */
 
 'use strict';
+
+const clone = require('git-clone');
 const program = require('commander');
 const inquirer = require('inquirer');
+const shell = require('shelljs');
+const log = require('tracer').colorConsole();
 
 const { version } = require('../../package.json');
 program.version(version);
+
+const remotePro = {
+    vue: 'vue-webpack-demo',
+    react: 'react-webpack-demo'
+}
 
 const promptList = [{
     type: 'input',
@@ -25,8 +34,7 @@ const promptList = [{
     name: 'projectType',
     choices: [
         "vue",
-        "react",
-        "es6"
+        "react"
     ],
     filter: function (val) {
         return val.toLowerCase();
@@ -35,7 +43,18 @@ const promptList = [{
 
 const init = function () {
     inquirer.prompt(promptList).then(res => {
-        console.log(res)
+        if (!res.projectType) log.error('error type.');
+
+        let pwd = shell.pwd();
+
+        clone(`https://github.com/ZhiCYue/${remotePro[res.projectType]}.git`, pwd + `/${res.projectName}`, null, function (error) {
+            if (error) {
+                log.error('error: ', error);
+                return;
+            }
+            shell.rm('-rf', pwd + `/${res.projectName}/.git`)
+            log.info('初始化成功!');
+        })
     })
 }
 
